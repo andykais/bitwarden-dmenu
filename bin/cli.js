@@ -22,7 +22,8 @@ Options:
                       without providing a password again. Defaults to ${sessionTimeoutDefault}s.
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to ${syncVaultAfterDefault}s.
-  --on-error          Arbitrary command to run if the program fails. Defaults to none.
+  --on-error          Arbitrary command to run if the program fails. The thrown error
+                      is piped to the given command. Defaults to none.
 `
   )
   process.exit()
@@ -46,18 +47,23 @@ menu({ saveSession, sessionFile, oldestAllowedVaultSync })
     })
   )
   .catch(e => {
-    console.log(e)
+    console.error(e)
     // if something goes wrong, immediately clear the clipboard & lock bitwarden,
     // then run error command
     scheduleCleanup({
       lockBitwardenAfter: 0,
       clearClipboardAfter: 0,
       sessionFile
-    }).then(() => {
-      if (onErrorCommand) {
-        const errorCommand = exec(onErrorCommand)
-        errorCommand.stdin.write(`'${e.toString()}'`)
-        errorCommand.stdin.end()
-      }
     })
+      .catch(e => {
+        // simply log a secondary error
+        console.error(e)
+      })
+      .then(() => {
+        if (onErrorCommand) {
+          const errorCommand = exec(onErrorCommand)
+          errorCommand.stdin.write(`'${e.toString()}'`)
+          errorCommand.stdin.end()
+        }
+      })
   })
