@@ -78,6 +78,7 @@ const chooseField = async ({ selectedAccount }) => {
     )
   }
   const field = await dmenuRun(Object.keys(copyable).join('\n'))
+  console.debug(`selected field '${field}'`)
   const valueToCopy = copyable[field]
   return valueToCopy
 }
