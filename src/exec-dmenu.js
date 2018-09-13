@@ -3,9 +3,11 @@ const { exec, execSync, spawn } = require('child_process')
 module.exports = (choices = '\n', args = '') =>
   new Promise((resolve, reject) => {
     let choice = ''
-    let error = []
+    const error = []
 
-    const dmenu = exec(`dmenu ${args}`)
+    const execCommand = `dmenu ${args}`
+    console.debug('$', execCommand)
+    const dmenu = exec(execCommand)
     dmenu.stdin.write(choices)
     dmenu.stdin.end()
 

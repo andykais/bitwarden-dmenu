@@ -24,6 +24,8 @@ Options:
                       current time. Defaults to ${syncVaultAfterDefault}s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
+
+  --verbose           Show extra logs useful for debugging.
 `
   )
   process.exit()
@@ -33,6 +35,9 @@ const clearClipboardAfter = args['clear-clipboard'] || cachePasswordDefault
 const sessionTimeout = args['session-timeout'] || sessionTimeoutDefault
 const syncVaultAfter = args['sync-vault-after'] || syncVaultAfterDefault
 const onErrorCommand = args['on-error']
+console.debug = args['verbose']
+  ? (...msgs) => console.log(...msgs, '\n')
+  : () => {}
 
 const oldestAllowedVaultSync = syncVaultAfter
 const saveSession = Boolean(sessionTimeout)

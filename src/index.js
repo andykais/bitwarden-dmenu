@@ -1,23 +1,29 @@
 const { existsSync, writeFileSync, readFileSync } = require('fs')
+const clipboardy = require('clipboardy')
 const dmenuRun = require('./exec-dmenu')
 const bwRun = require('./exec-bitwarden-cli')
-const clipboardy = require('clipboardy')
+const obfuscate = require('./util/obfuscate/object')
 
+// get a session token, either from existing sessionFile or by `bw unlock [password]`
 const getSessionVar = async ({ saveSession, sessionFile }) => {
   if (saveSession) {
+    console.debug(`checking for session file at ${sessionFile}`)
     const sessionFileExists = existsSync(sessionFile)
 
     if (sessionFileExists) {
       const session = readFileSync(sessionFile)
         .toString()
         .replace(/\n$/, '')
+      console.debug('read existing session file.')
       return session
     } else {
+      console.debug('no session file found.')
       // prompt for password in dmenu
       const password = await dmenuRun('\n', '-p Password: -nf black -nb black')
       if (!password) throw new Error('no password given!')
       const session = bwRun(`unlock '${password}' --raw`)
       writeFileSync(sessionFile, session)
+      console.debug('saved new session file.')
       return session
     }
   } else {
@@ -28,33 +34,37 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
   }
 }
 
-module.exports = async ({
-  saveSession,
-  sessionFile,
-  oldestAllowedVaultSync
-}) => {
-  const session = await getSessionVar({ saveSession, sessionFile })
-  console.log({ session })
-
-  // bw sync if necessary
+// sync the password accounts with the remote server
+// if --sync-vault-after < time since the last sync
+const syncIfNecessary = ({ session, oldestAllowedVaultSync }) => {
   const last = bwRun(`sync --last --session=${session}`)
   const timeSinceSync = (new Date().getTime() - new Date(last).getTime()) / 1000
   if (timeSinceSync > oldestAllowedVaultSync) {
+    console.debug('syncing vault...')
     bwRun(`sync --session=${session}`)
+    console.debug(`sync complete, last sync was ${last}`)
   }
-  console.log('synced')
+}
 
-  // bw list
+// get the list all password accounts in the vault
+const getAccounts = ({ session }) => {
   const listStr = bwRun(`list items --session=${session}`)
   const list = JSON.parse(listStr)
-  const accountNames = list.map(a => `${a.name}: ${a.login.username}`)
+  return list
+}
 
-  // choose account in dmenu
+// choose one account with dmenu
+const chooseAccount = async ({ list }) => {
+  const accountNames = list.map(a => `${a.name}: ${a.login.username}`)
   const selected = await dmenuRun(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   const selectedAccount = list[index]
+  console.debug('selected account:\n', obfuscate(selectedAccount))
+  return selectedAccount
+}
 
-  // choose field to copy in dmenu
+// choose one field with dmenu
+const chooseField = async ({ selectedAccount }) => {
   const copyable = {
     password: selectedAccount.login.password,
     username: selectedAccount.login.username,
@@ -69,6 +79,27 @@ module.exports = async ({
   }
   const field = await dmenuRun(Object.keys(copyable).join('\n'))
   const valueToCopy = copyable[field]
+  return valueToCopy
+}
+
+module.exports = async ({
+  saveSession,
+  sessionFile,
+  oldestAllowedVaultSync
+}) => {
+  const session = await getSessionVar({ saveSession, sessionFile })
+
+  // bw sync if necessary
+  syncIfNecessary({ session, oldestAllowedVaultSync })
+
+  // bw list
+  const list = getAccounts({ session })
+
+  // choose account in dmenu
+  const selectedAccount = await chooseAccount({ list })
+
+  // choose field to copy in dmenu
+  const valueToCopy = await chooseField({ selectedAccount })
 
   // copy to clipboard
   clipboardy.writeSync(valueToCopy)

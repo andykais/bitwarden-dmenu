@@ -1,6 +1,6 @@
 {
   "name": "bitwarden-dmenu",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "",
   "keywords": [
     "bitwarden",
@@ -13,7 +13,7 @@
   },
   "license": "MIT",
   "author": "Andrew Kaiser",
-  "main": "index.js",
+  "main": "src/index.js",
   "bin": {
     "bitwarden-dmenu": "bin/cli.js"
   },
