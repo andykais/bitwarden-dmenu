@@ -55,7 +55,10 @@ const getAccounts = ({ session }) => {
 
 // choose one account with dmenu
 const chooseAccount = async ({ list }) => {
-  const accountNames = list.map(a => `${a.name}: ${a.login.username}`)
+  const LOGIN_TYPE = 1
+  const accountNames = list
+    .filter(a => a.type === LOGIN_TYPE)
+    .map(a => `${a.name}: ${a.login.username}`)
   const selected = await dmenuRun(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   const selectedAccount = list[index]
