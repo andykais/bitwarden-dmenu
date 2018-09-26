@@ -21,7 +21,7 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
       // prompt for password in dmenu
       const password = await dmenuRun('\n', '-p Password: -nf black -nb black')
       if (!password) throw new Error('no password given!')
-      const session = bwRun(`unlock '${password}' --raw`)
+      const session = bwRun(`unlock $'${password.replace(`'`, `\\'`)}' --raw`)
       writeFileSync(sessionFile, session)
       console.debug('saved new session file.')
       return session
@@ -29,7 +29,7 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
   } else {
     const password = await dmenuRun('\n', '-p Password: -nf black -nb black')
     if (!password) throw new Error('no password given!')
-    const session = bwRun(`unlock '${password}' --raw`)
+    const session = bwRun(`unlock $'${password.replace(`'`, `\\'`)}' --raw`)
     return session
   }
 }

@@ -4,7 +4,7 @@ const os = require('os')
 const path = require('path')
 const { exec } = require('child_process')
 const minimist = require('minimist')
-const menu = require('../src/index')
+const menu = require('../src')
 const scheduleCleanup = require('../src/schedule-cleanup')
 
 const cachePasswordDefault = 15
