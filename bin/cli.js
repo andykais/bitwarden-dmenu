@@ -61,7 +61,7 @@ menu({ saveSession, sessionFile, oldestAllowedVaultSync })
       sessionFile
     })
       .catch(e => {
-        // simply log a secondary error
+        // simply log an error with cleanup
         console.error(e)
       })
       .then(() => {
