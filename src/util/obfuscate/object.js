@@ -29,7 +29,9 @@ const replaceNonNullValues = traverseObject(v => {
 })
 
 module.exports = object => {
-  const copied = JSON.parse(JSON.stringify(object))
-  const obfuscatedObject = replaceNonNullValues(copied)
-  return JSON.stringify(obfuscatedObject, null, 2)
+  if (object) {
+    const copied = JSON.parse(JSON.stringify(object))
+    const obfuscatedObject = replaceNonNullValues(copied)
+    return JSON.stringify(obfuscatedObject, null, 2)
+  }
 }
