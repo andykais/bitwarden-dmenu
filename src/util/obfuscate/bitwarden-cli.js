@@ -1,4 +1,4 @@
 module.exports = command =>
   command
-    .replace(/unlock\s'.*'/, `unlock '******'`)
-    .replace(/session=.*/, 'session=****** ')
+    .replace(/unlock\s.*--raw$/, `unlock ****** --raw`)
+    .replace(/session=.*/, 'session=******')

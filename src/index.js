@@ -19,19 +19,17 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
     } else {
       console.debug('no session file found.')
       // prompt for password in dmenu
-      const password = await dmenuRun('\n', '-p Password: -nf black -nb black')
+      const password = await dmenuRun('-p Password: -nf black -nb black')('\n')
       if (!password) throw new Error('no password given!')
-      const escapedPw = password.replace(/'/g, String.raw`'\''`)
-      const session = bwRun(`unlock '${escapedPw}' --raw`)
+      const session = bwRun('unlock', password, '--raw')
       writeFileSync(sessionFile, session)
       console.debug('saved new session file.')
       return session
     }
   } else {
-    const password = await dmenuRun('\n', '-p Password: -nf black -nb black')
+    const password = await dmenuRun('-p Password: -nf black -nb black')('\n')
     if (!password) throw new Error('no password given!')
-    const escapedPw = password.replace(/'/g, String.raw`'\''`)
-    const session = bwRun(`unlock '${escapedPw}' --raw`)
+    const session = bwRun('unlock', password, '--raw')
     return session
   }
 }
@@ -39,18 +37,18 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
 // sync the password accounts with the remote server
 // if --sync-vault-after < time since the last sync
 const syncIfNecessary = ({ session, oldestAllowedVaultSync }) => {
-  const last = bwRun(`sync --last --session=${session}`)
+  const last = bwRun('sync', '--last', `--session=${session}`)
   const timeSinceSync = (new Date().getTime() - new Date(last).getTime()) / 1000
   if (timeSinceSync > oldestAllowedVaultSync) {
     console.debug('syncing vault...')
-    bwRun(`sync --session=${session}`)
+    bwRun('sync', `--session=${session}`)
     console.debug(`sync complete, last sync was ${last}`)
   }
 }
 
 // get the list all password accounts in the vault
 const getAccounts = ({ session }) => {
-  const listStr = bwRun(`list items --session=${session}`)
+  const listStr = bwRun('list', 'items', `--session=${session}`)
   const list = JSON.parse(listStr)
   return list
 }
@@ -62,7 +60,7 @@ const chooseAccount = async ({ list }) => {
     .filter(a => a.type === LOGIN_TYPE)
     .map(a => `${a.name}: ${a.login.username}`)
   // -i allows case insensitive matching
-  const selected = await dmenuRun(accountNames.join('\n'), '-i')
+  const selected = await dmenuRun('-i')(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   const selectedAccount = list[index]
   console.debug('selected account:\n', obfuscate(selectedAccount))
@@ -71,6 +69,7 @@ const chooseAccount = async ({ list }) => {
 
 // choose one field with dmenu
 const chooseField = async ({ selectedAccount }) => {
+  if (!selectedAccount) throw new Error('no account selected!')
   const copyable = {
     password: selectedAccount.login.password,
     username: selectedAccount.login.username,
@@ -83,7 +82,7 @@ const chooseField = async ({ selectedAccount }) => {
       {}
     )
   }
-  const field = await dmenuRun(Object.keys(copyable).join('\n'))
+  const field = await dmenuRun()(Object.keys(copyable).join('\n'))
   console.debug(`selected field '${field}'`)
   const valueToCopy = copyable[field]
   return valueToCopy

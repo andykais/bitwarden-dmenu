@@ -1,6 +1,6 @@
-const { exec, execSync, spawn } = require('child_process')
+const { exec } = require('child_process')
 
-module.exports = (choices = '\n', args = '') =>
+module.exports = (...args) => choices =>
   new Promise((resolve, reject) => {
     let choice = ''
     const error = []
