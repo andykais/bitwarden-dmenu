@@ -56,13 +56,14 @@ const getAccounts = ({ session }) => {
 // choose one account with dmenu
 const chooseAccount = async ({ list }) => {
   const LOGIN_TYPE = 1
-  const accountNames = list
-    .filter(a => a.type === LOGIN_TYPE)
-    .map(a => `${a.name}: ${a.login.username}`)
+  const loginList = list.filter(a => a.type === LOGIN_TYPE)
+
+  const accountNames = loginList.map(a => `${a.name}: ${a.login.username}`)
   // -i allows case insensitive matching
   const selected = await dmenuRun('-i')(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
-  const selectedAccount = list[index]
+  // accountNames indexes match loginList indexes
+  const selectedAccount = loginList[index]
   console.debug('selected account:\n', obfuscate(selectedAccount))
   return selectedAccount
 }
