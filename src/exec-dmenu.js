@@ -5,7 +5,6 @@ const dmenuPath = process.env.DMENU_PATH || 'dmenu'
 module.exports = (...args) => choices =>
   new Promise((resolve, reject) => {
     let choice = ''
-    let dmenu_path = process.env.DMENU_PATH
     const error = []
 
     // Use a default of 'dmenu' if not specified in process.env
