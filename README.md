@@ -13,6 +13,8 @@ clipboard.
 $ bitwarden-dmenu --help
 Usage: bitwarden-dmenu [options]
 
+The DMENU_PATH environment variable can be used to point to an alternative dmenu implementation. Defaults to 'dmenu'.
+
 Options:
   --clear-clipboard   Number of seconds to keep selected field in the clipboard.
                       Defaults to 15s.
