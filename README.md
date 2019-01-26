@@ -10,7 +10,7 @@ clipboard.
 ## Usage
 
 ```
-$ bitwarden-dmenu --help
+$ bitwarden-demu --help
 Usage: bitwarden-dmenu [options]
 
 The DMENU_PATH environment variable can be used to point to an alternative dmenu implementation. Defaults to 'dmenu'.
@@ -20,10 +20,12 @@ Options:
                       Defaults to 15s.
   --session-timeout   Number of seconds after an unlock that the menu can be accessed
                       without providing a password again. Defaults to 0s.
+  --stdout            Prints the password & username to stdout
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to 0s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
+  --url               Url to filter by.
 
   --verbose           Show extra logs useful for debugging.
 ```

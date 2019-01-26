@@ -9,7 +9,7 @@ const timeout = n => new Promise(resolve => setTimeout(resolve, n))
  *
  */
 
-module.exports = ({ lockBitwardenAfter, clearClipboardAfter, sessionFile }) => {
+module.exports = ({ lockBitwardenAfter, clearClipboardAfter, sessionFile, stdout }) => {
   console.debug('begin cleanup')
   return Promise.all([
     timeout(lockBitwardenAfter * 1000).then(() => {
@@ -21,11 +21,16 @@ module.exports = ({ lockBitwardenAfter, clearClipboardAfter, sessionFile }) => {
         console.debug(`${sessionFile} already removed.`)
       }
       bwRun('lock')
-      console.info('bitwarden is locked.')
+      // don't output to stdout if it is being used for reading information
+      if(!stdout) {
+        console.info('bitwarden is locked.')
+      }
     }),
     timeout(clearClipboardAfter * 1000).then(() => {
       clipboardy.writeSync('')
-      console.info('clipboard is cleared.')
+      if(!stdout) {
+        console.info('clipboard is cleared.')
+      }
     })
   ])
 }

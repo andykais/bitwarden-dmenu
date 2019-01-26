@@ -47,8 +47,17 @@ const syncIfNecessary = ({ session, oldestAllowedVaultSync }) => {
 }
 
 // get the list all password accounts in the vault
-const getAccounts = ({ session }) => {
-  const listStr = bwRun('list', 'items', `--session=${session}`)
+const getAccounts = ({ session, urlFilter }) => {
+  var listStr = ""
+  if(urlFilter) {
+    listStr = bwRun('list', 'items', `--url=${urlFilter}`, `--session=${session}`)
+  } else {
+    listStr = bwRun('list', 'items', `--session=${session}`)
+  }
+  // const listStr = urlFilter 
+  //                 ? bwRun('list', 'items', `--url=${urlFilter}`, `--session=${session}`)
+  //                 : bwRun('list', 'items', `--session=${session}`)
+
   const list = JSON.parse(listStr)
   return list
 }
@@ -60,7 +69,7 @@ const chooseAccount = async ({ list }) => {
 
   const accountNames = loginList.map(a => `${a.name}: ${a.login.username}`)
   // -i allows case insensitive matching
-  const selected = await dmenuRun('-i')(accountNames.join('\n'))
+  const selected = await dmenuRun()(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   // accountNames indexes match loginList indexes
   const selectedAccount = loginList[index]
@@ -92,7 +101,9 @@ const chooseField = async ({ selectedAccount }) => {
 module.exports = async ({
   saveSession,
   sessionFile,
-  oldestAllowedVaultSync
+  oldestAllowedVaultSync,
+  urlFilter,
+  stdout
 }) => {
   const session = await getSessionVar({ saveSession, sessionFile })
 
@@ -100,14 +111,18 @@ module.exports = async ({
   syncIfNecessary({ session, oldestAllowedVaultSync })
 
   // bw list
-  const list = getAccounts({ session })
+  const list = getAccounts({ session, urlFilter })
 
   // choose account in dmenu
   const selectedAccount = await chooseAccount({ list })
 
-  // choose field to copy in dmenu
-  const valueToCopy = await chooseField({ selectedAccount })
+  if(stdout) {
+    console.log(`${selectedAccount.login.username}\n${selectedAccount.login.password}`)
+  } else {
+    // choose field to copy in dmenu
+    const valueToCopy = await chooseField({ selectedAccount })
 
-  // copy to clipboard
-  clipboardy.writeSync(valueToCopy)
+    // copy to clipboard
+    clipboardy.writeSync(valueToCopy)
+  }
 }

@@ -10,6 +10,9 @@ const scheduleCleanup = require('../src/schedule-cleanup')
 const cachePasswordDefault = 15
 const sessionTimeoutDefault = 0
 const syncVaultAfterDefault = 0
+const urlFilterDefault = null
+const stdoutDefault = false
+
 const args = minimist(process.argv.slice(2))
 if (args.help) {
   console.log(
@@ -22,11 +25,13 @@ Options:
                       Defaults to ${cachePasswordDefault}s.
   --session-timeout   Number of seconds after an unlock that the menu can be accessed
                       without providing a password again. Defaults to ${sessionTimeoutDefault}s.
+  --stdout            Prints the password & username to stdout
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to ${syncVaultAfterDefault}s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
-
+  --url               Url to filter by.
+  
   --verbose           Show extra logs useful for debugging.
 `
   )
@@ -37,6 +42,9 @@ const clearClipboardAfter = args['clear-clipboard'] || cachePasswordDefault
 const sessionTimeout = args['session-timeout'] || sessionTimeoutDefault
 const syncVaultAfter = args['sync-vault-after'] || syncVaultAfterDefault
 const onErrorCommand = args['on-error']
+const urlFilter = args['url'] || urlFilterDefault
+const stdout = args['stdout'] || stdoutDefault
+
 console.debug = args['verbose']
   ? (...msgs) => console.log(...msgs, '\n')
   : () => {}
@@ -45,12 +53,13 @@ const oldestAllowedVaultSync = syncVaultAfter
 const saveSession = Boolean(sessionTimeout)
 const sessionFile = path.resolve(os.tmpdir(), 'bitwarden-session.txt')
 
-menu({ saveSession, sessionFile, oldestAllowedVaultSync })
+menu({ saveSession, sessionFile, oldestAllowedVaultSync, urlFilter, stdout })
   .then(() =>
     scheduleCleanup({
       lockBitwardenAfter: sessionTimeout,
       clearClipboardAfter,
-      sessionFile
+      sessionFile,
+      stdout
     })
   )
   .catch(e => {
@@ -60,7 +69,8 @@ menu({ saveSession, sessionFile, oldestAllowedVaultSync })
     scheduleCleanup({
       lockBitwardenAfter: 0,
       clearClipboardAfter: 0,
-      sessionFile
+      sessionFile,
+      stdout
     })
       .catch(e => {
         // simply log an error with cleanup
