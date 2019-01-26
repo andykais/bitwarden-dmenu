@@ -18,9 +18,11 @@ The DMENU_PATH environment variable can be used to point to an alternative dmenu
 Options:
   --clear-clipboard   Number of seconds to keep selected field in the clipboard.
                       Defaults to 15s.
+  -l                  Sets the -l parameter value passed to dmenu.
+                      Defaults to 0
   --session-timeout   Number of seconds after an unlock that the menu can be accessed
                       without providing a password again. Defaults to 0s.
-  --stdout            Prints the password & username to stdout
+  --stdout            Prints the password and username to stdout
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to 0s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
