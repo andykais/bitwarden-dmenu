@@ -27,8 +27,8 @@ module.exports = ({ lockBitwardenAfter, clearClipboardAfter, sessionFile, stdout
       }
     }),
     timeout(clearClipboardAfter * 1000).then(() => {
-      clipboardy.writeSync('')
       if(!stdout) {
+        clipboardy.writeSync('')
         console.info('clipboard is cleared.')
       }
     })
