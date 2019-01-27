@@ -62,6 +62,10 @@ console.debug = args['verbose']
   ? (...msgs) => console.log(...msgs, '\n')
   : () => {}
 
+console.info = args['stdout']
+  ? () => {}
+  : console.info
+
 const oldestAllowedVaultSync = syncVaultAfter
 const saveSession = Boolean(sessionTimeout)
 const sessionFile = path.resolve(os.tmpdir(), 'bitwarden-session.txt')

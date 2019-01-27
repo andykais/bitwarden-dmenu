@@ -21,10 +21,7 @@ module.exports = ({ lockBitwardenAfter, clearClipboardAfter, sessionFile, stdout
         console.debug(`${sessionFile} already removed.`)
       }
       bwRun('lock')
-      // don't output to stdout if it is being used for reading information
-      if(!stdout) {
-        console.info('bitwarden is locked.')
-      }
+      console.info('bitwarden is locked.')
     }),
     timeout(clearClipboardAfter * 1000).then(() => {
       if(!stdout) {

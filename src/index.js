@@ -60,7 +60,6 @@ const chooseAccount = async ({ list, dmenuArgs }) => {
   const loginList = list.filter(a => a.type === LOGIN_TYPE)
 
   const accountNames = loginList.map(a => `${a.name}: ${a.login.username}`)
-  // -i allows case insensitive matching
   const selected = await dmenuRun(dmenuArgs)(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   // accountNames indexes match loginList indexes

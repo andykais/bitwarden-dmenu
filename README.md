@@ -10,7 +10,7 @@ clipboard.
 ## Usage
 
 ```
-$ bitwarden-dmemu --help
+$ bitwarden-dmenu --help
 Usage: bitwarden-dmenu [options]
 
 The DMENU_PATH environment variable can be used to point to an alternative dmenu implementation. Defaults to 'dmenu'.
