@@ -16,10 +16,17 @@ Usage: bitwarden-dmenu [options]
 The DMENU_PATH environment variable can be used to point to an alternative dmenu implementation. Defaults to 'dmenu'.
 
 Options:
+  --bw-list-args      Arbitrary arguments to pass to bitwarden's 'list' command
+                      Defaults to nothing.
   --clear-clipboard   Number of seconds to keep selected field in the clipboard.
                       Defaults to 15s.
+  --dmenu-args        Sets arbitrary arguments to pass to dmenu
+                      Defaults to nothing.
+  --dmenu-pswd-args   Sets arbitrary arguments to pass to the dmenu password prompt
+                      Defaults to nothing.
   --session-timeout   Number of seconds after an unlock that the menu can be accessed
                       without providing a password again. Defaults to 0s.
+  --stdout            Prints the password and username to stdout
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to 0s.
   --on-error          Arbitrary command to run if the program fails. The thrown error

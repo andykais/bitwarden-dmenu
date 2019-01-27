@@ -22,7 +22,7 @@
     "lint": "git ls-files '*.js' '*.json' | xargs prettier -l"
   },
   "dependencies": {
-    "@bitwarden/cli": "^1.3.0",
+    "@bitwarden/cli": "^1.4.0",
     "clipboardy": "^1.2.3",
     "minimist": "^1.2.0"
   },

@@ -7,9 +7,15 @@ const minimist = require('minimist')
 const menu = require('../src')
 const scheduleCleanup = require('../src/schedule-cleanup')
 
+const bwListArgsDefault = ""
 const cachePasswordDefault = 15
+const dmenuArgsDefault = ""
+const dmenuPswdArgsDefault = ""
+const lengthDefault = 0
 const sessionTimeoutDefault = 0
 const syncVaultAfterDefault = 0
+const stdoutDefault = false
+
 const args = minimist(process.argv.slice(2))
 if (args.help) {
   console.log(
@@ -18,39 +24,59 @@ if (args.help) {
 The DMENU_PATH environment variable can be used to point to an alternative dmenu implementation. Defaults to 'dmenu'.
 
 Options:
+  --bw-list-args      Arbitrary arguments to pass to bitwarden's 'list' command
+                      Defaults to nothing.
   --clear-clipboard   Number of seconds to keep selected field in the clipboard.
                       Defaults to ${cachePasswordDefault}s.
+  --dmenu-args        Sets arbitrary arguments to pass to dmenu
+                      Defaults to nothing.
+  --dmenu-pswd-args   Sets arbitrary arguments to pass to the dmenu password prompt
+                      Defaults to nothing.
   --session-timeout   Number of seconds after an unlock that the menu can be accessed
                       without providing a password again. Defaults to ${sessionTimeoutDefault}s.
+  --stdout            Prints the password and username to stdout
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to ${syncVaultAfterDefault}s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
-
+  
   --verbose           Show extra logs useful for debugging.
 `
   )
   process.exit()
 }
 
-const clearClipboardAfter = args['clear-clipboard'] || cachePasswordDefault
+const bwListArgs = args['bw-list-args'] || bwListArgsDefault
+const dmenuArgs = args['dmenu-args'] || dmenuArgsDefault
+const dmenuPswdArgs = args['dmenu-pswd-args'] || dmenuPswdArgsDefault
+const length = args['l'] || lengthDefault
 const sessionTimeout = args['session-timeout'] || sessionTimeoutDefault
 const syncVaultAfter = args['sync-vault-after'] || syncVaultAfterDefault
 const onErrorCommand = args['on-error']
+const stdout = args['stdout'] || stdoutDefault
+
+// prevent clipboard clearing from locking up process when printing to stdout
+const clearClipboardAfter = stdout ? 0 : args['clear-clipboard'] || cachePasswordDefault
+
 console.debug = args['verbose']
   ? (...msgs) => console.log(...msgs, '\n')
   : () => {}
+
+console.info = args['stdout']
+  ? () => {}
+  : console.info
 
 const oldestAllowedVaultSync = syncVaultAfter
 const saveSession = Boolean(sessionTimeout)
 const sessionFile = path.resolve(os.tmpdir(), 'bitwarden-session.txt')
 
-menu({ saveSession, sessionFile, oldestAllowedVaultSync })
+menu({ bwListArgs, dmenuArgs, dmenuPswdArgs, saveSession, sessionFile, stdout, oldestAllowedVaultSync })
   .then(() =>
     scheduleCleanup({
       lockBitwardenAfter: sessionTimeout,
       clearClipboardAfter,
-      sessionFile
+      sessionFile,
+      stdout
     })
   )
   .catch(e => {
@@ -60,7 +86,8 @@ menu({ saveSession, sessionFile, oldestAllowedVaultSync })
     scheduleCleanup({
       lockBitwardenAfter: 0,
       clearClipboardAfter: 0,
-      sessionFile
+      sessionFile,
+      stdout
     })
       .catch(e => {
         // simply log an error with cleanup

@@ -5,7 +5,7 @@ const bwRun = require('./exec-bitwarden-cli')
 const obfuscate = require('./util/obfuscate/object')
 
 // get a session token, either from existing sessionFile or by `bw unlock [password]`
-const getSessionVar = async ({ saveSession, sessionFile }) => {
+const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
   if (saveSession) {
     console.debug(`checking for session file at ${sessionFile}`)
     const sessionFileExists = existsSync(sessionFile)
@@ -19,7 +19,7 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
     } else {
       console.debug('no session file found.')
       // prompt for password in dmenu
-      const password = await dmenuRun('-p Password: -nf black -nb black')('\n')
+      const password = await dmenuRun(`-p Password: -nf black -nb black ${dmenuPswdArgs}`)('\n')
       if (!password) throw new Error('no password given!')
       const session = bwRun('unlock', password, '--raw')
       writeFileSync(sessionFile, session)
@@ -27,7 +27,8 @@ const getSessionVar = async ({ saveSession, sessionFile }) => {
       return session
     }
   } else {
-    const password = await dmenuRun('-p Password: -nf black -nb black')('\n')
+    // Why doesn't dmenuRun('...', dmenuPswdArgs)('\n') work here?
+    const password = await dmenuRun(`-p Password: -nf black -nb black ${dmenuPswdArgs}`)('\n')
     if (!password) throw new Error('no password given!')
     const session = bwRun('unlock', password, '--raw')
     return session
@@ -47,20 +48,19 @@ const syncIfNecessary = ({ session, oldestAllowedVaultSync }) => {
 }
 
 // get the list all password accounts in the vault
-const getAccounts = ({ session }) => {
-  const listStr = bwRun('list', 'items', `--session=${session}`)
+const getAccounts = ({ session, bwListArgs }) => {
+  const listStr = bwRun('list', 'items', bwListArgs, `--session=${session}`)
   const list = JSON.parse(listStr)
   return list
 }
 
 // choose one account with dmenu
-const chooseAccount = async ({ list }) => {
+const chooseAccount = async ({ list, dmenuArgs }) => {
   const LOGIN_TYPE = 1
   const loginList = list.filter(a => a.type === LOGIN_TYPE)
 
   const accountNames = loginList.map(a => `${a.name}: ${a.login.username}`)
-  // -i allows case insensitive matching
-  const selected = await dmenuRun('-i')(accountNames.join('\n'))
+  const selected = await dmenuRun(dmenuArgs)(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   // accountNames indexes match loginList indexes
   const selectedAccount = loginList[index]
@@ -69,7 +69,7 @@ const chooseAccount = async ({ list }) => {
 }
 
 // choose one field with dmenu
-const chooseField = async ({ selectedAccount }) => {
+const chooseField = async ({ selectedAccount, dmenuArgs }) => {
   if (!selectedAccount) throw new Error('no account selected!')
   const copyable = {
     password: selectedAccount.login.password,
@@ -83,31 +83,39 @@ const chooseField = async ({ selectedAccount }) => {
       {}
     )
   }
-  const field = await dmenuRun()(Object.keys(copyable).join('\n'))
+  const field = await dmenuRun(dmenuArgs)(Object.keys(copyable).join('\n'))
   console.debug(`selected field '${field}'`)
   const valueToCopy = copyable[field]
   return valueToCopy
 }
 
 module.exports = async ({
+  bwListArgs,
+  dmenuArgs,
+  dmenuPswdArgs,
   saveSession,
   sessionFile,
+  stdout,
   oldestAllowedVaultSync
 }) => {
-  const session = await getSessionVar({ saveSession, sessionFile })
+  const session = await getSessionVar({ dmenuPswdArgs, saveSession, sessionFile })
 
   // bw sync if necessary
   syncIfNecessary({ session, oldestAllowedVaultSync })
-
+  
   // bw list
-  const list = getAccounts({ session })
+  const list = getAccounts({ session, bwListArgs })
 
   // choose account in dmenu
-  const selectedAccount = await chooseAccount({ list })
+  const selectedAccount = await chooseAccount({ list, dmenuArgs })
 
-  // choose field to copy in dmenu
-  const valueToCopy = await chooseField({ selectedAccount })
+  if(stdout) {
+    console.log(`${selectedAccount.login.username}\n${selectedAccount.login.password}`)
+  } else {
+    // choose field to copy in dmenu
+    const valueToCopy = await chooseField({ selectedAccount, dmenuArgs })
 
-  // copy to clipboard
-  clipboardy.writeSync(valueToCopy)
+    // copy to clipboard
+    clipboardy.writeSync(valueToCopy)
+  }
 }
