@@ -5,6 +5,13 @@ const bwRun = require('./exec-bitwarden-cli')
 const obfuscate = require('./util/obfuscate/object')
 const packageJson = require('../package.json')
 
+class BitwardenDmenu {
+  constructor(args) {
+    Object.assign(this, args)
+  }
+}
+
+const loginIfNecessary = () => {}
 // get a session token, either from existing sessionFile or by `bw unlock [password]`
 const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
   if (saveSession) {
@@ -38,7 +45,7 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
 
 // sync the password accounts with the remote server
 // if --sync-vault-after < time since the last sync
-const syncIfNecessary = ({ session, oldestAllowedVaultSync }) => {
+const syncIfNecessary = ({ oldestAllowedVaultSync }, session) => {
   const last = bwRun('sync', '--last', `--session=${session}`)
   const timeSinceSync = (new Date().getTime() - new Date(last).getTime()) / 1000
   if (timeSinceSync > oldestAllowedVaultSync) {
@@ -49,14 +56,14 @@ const syncIfNecessary = ({ session, oldestAllowedVaultSync }) => {
 }
 
 // get the list all password accounts in the vault
-const getAccounts = ({ session, bwListArgs }) => {
+const getAccounts = ({ bwListArgs }, session) => {
   const listStr = bwRun('list', 'items', bwListArgs, `--session=${session}`)
   const list = JSON.parse(listStr)
   return list
 }
 
 // choose one account with dmenu
-const chooseAccount = async ({ list, dmenuArgs }) => {
+const chooseAccount = async ({ dmenuArgs }, list) => {
   const LOGIN_TYPE = 1
   const loginList = list.filter(a => a.type === LOGIN_TYPE)
 
@@ -70,7 +77,7 @@ const chooseAccount = async ({ list, dmenuArgs }) => {
 }
 
 // choose one field with dmenu
-const chooseField = async ({ selectedAccount, dmenuArgs }) => {
+const chooseField = async ({ dmenuArgs }, selectedAccount) => {
   if (!selectedAccount) throw new Error('no account selected!')
   const copyable = {
     password: selectedAccount.login.password,
@@ -90,32 +97,25 @@ const chooseField = async ({ selectedAccount, dmenuArgs }) => {
   return valueToCopy
 }
 
-module.exports = async ({
-  bwListArgs,
-  dmenuArgs,
-  dmenuPswdArgs,
-  saveSession,
-  sessionFile,
-  stdout,
-  oldestAllowedVaultSync
-}) => {
+module.exports = async args => {
   console.debug(`bitwarden-dmenu v${packageJson.version}`)
-  const session = await getSessionVar({ dmenuPswdArgs, saveSession, sessionFile })
+
+  const session = await getSessionVar(args)
 
   // bw sync if necessary
-  syncIfNecessary({ session, oldestAllowedVaultSync })
+  syncIfNecessary(args, session)
 
   // bw list
-  const list = getAccounts({ session, bwListArgs })
+  const list = getAccounts(args, session)
 
   // choose account in dmenu
-  const selectedAccount = await chooseAccount({ list, dmenuArgs })
+  const selectedAccount = await chooseAccount(args, list)
 
-  if (stdout) {
+  if (args.stdout) {
     console.log(`${selectedAccount.login.username}\n${selectedAccount.login.password}`)
   } else {
     // choose field to copy in dmenu
-    const valueToCopy = await chooseField({ selectedAccount, dmenuArgs })
+    const valueToCopy = await chooseField(args, selectedAccount)
 
     // copy to clipboard
     clipboardy.writeSync(valueToCopy)
