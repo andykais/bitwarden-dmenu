@@ -43,12 +43,11 @@ little more lenient. Here is the command I use in my personal i3wm config.
 bitwarden-dmenu --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
 ```
 
+`bitwarden-dmenu` will prompt for a login if you are logged out.
+
 ## Installation
 
 ```bash
-# login with bitwarden-cli once before using bitwarden-dmenu
-bw login
-# install the cli
 npm i -g bitwarden-dmenu
 ```
 

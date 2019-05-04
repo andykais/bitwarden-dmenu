@@ -1,5 +1,6 @@
 const { existsSync, writeFileSync, readFileSync } = require('fs')
 const clipboardy = require('clipboardy')
+const { CommandError } = require('./util/error')
 const dmenuRun = require('./exec-dmenu')
 const bwRun = require('./exec-bitwarden-cli')
 const obfuscate = require('./util/obfuscate/object')
@@ -11,7 +12,29 @@ class BitwardenDmenu {
   }
 }
 
-const loginIfNecessary = () => {}
+const isLoggedIn = async () => {
+  try {
+    bwRun('login', '--check')
+  } catch (e) {
+    if (e instanceof CommandError && e.stdout === 'You are not logged in.') {
+      return false
+    } else {
+      throw e
+    }
+  }
+  return true
+}
+const login = async ({ dmenuArgs, dmenuPswdArgs }) => {
+  const email = await dmenuRun(
+    '-p',
+    'You are logged out. Please provide your email:',
+    ...dmenuArgs
+  )('\n')
+  const password = await dmenuRun(...dmenuPswdArgs)('\n')
+  const session = bwRun('login', email, password, '--raw')
+  return session
+}
+
 // get a session token, either from existing sessionFile or by `bw unlock [password]`
 const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
   if (saveSession) {
@@ -27,7 +50,7 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
     } else {
       console.debug('no session file found.')
       // prompt for password in dmenu
-      const password = await dmenuRun(`-p Password: -nf black -nb black ${dmenuPswdArgs}`)('\n')
+      const password = await dmenuRun(...dmenuPswdArgs)('\n')
       if (!password.length) throw new Error('no password given!')
       const session = bwRun('unlock', password, '--raw')
       writeFileSync(sessionFile, session)
@@ -36,7 +59,7 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
     }
   } else {
     // Why doesn't dmenuRun('...', dmenuPswdArgs)('\n') work here?
-    const password = await dmenuRun(`-p Password: -nf black -nb black ${dmenuPswdArgs}`)('\n')
+    const password = await dmenuRun(...dmenuPswdArgs)('\n')
     if (!password.length) throw new Error('no password given!')
     const session = bwRun('unlock', password, '--raw')
     return session
@@ -68,7 +91,7 @@ const chooseAccount = async ({ dmenuArgs }, list) => {
   const loginList = list.filter(a => a.type === LOGIN_TYPE)
 
   const accountNames = loginList.map(a => `${a.name}: ${a.login.username}`)
-  const selected = await dmenuRun(dmenuArgs)(accountNames.join('\n'))
+  const selected = await dmenuRun(...dmenuArgs)(accountNames.join('\n'))
   const index = accountNames.indexOf(selected)
   // accountNames indexes match loginList indexes
   const selectedAccount = loginList[index]
@@ -91,7 +114,7 @@ const chooseField = async ({ dmenuArgs }, selectedAccount) => {
       {}
     )
   }
-  const field = await dmenuRun(dmenuArgs)(Object.keys(copyable).join('\n'))
+  const field = await dmenuRun(...dmenuArgs)(Object.keys(copyable).join('\n'))
   console.debug(`selected field '${field}'`)
   const valueToCopy = copyable[field]
   return valueToCopy
@@ -100,7 +123,7 @@ const chooseField = async ({ dmenuArgs }, selectedAccount) => {
 module.exports = async args => {
   console.debug(`bitwarden-dmenu v${packageJson.version}`)
 
-  const session = await getSessionVar(args)
+  const session = (await isLoggedIn()) ? await getSessionVar(args) : await login(args)
 
   // bw sync if necessary
   syncIfNecessary(args, session)

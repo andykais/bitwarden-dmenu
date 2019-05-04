@@ -1,27 +1,26 @@
-const { exec } = require('child_process')
+const { spawn } = require('child_process')
 
 const dmenuPath = process.env.DMENU_PATH || 'dmenu'
 
 module.exports = (...args) => choices =>
   new Promise((resolve, reject) => {
-    let choice = ''
-    const error = []
-
-    // Use a default of 'dmenu' if not specified in process.env
-    const execCommand = `${dmenuPath} ${args}`
+    const execCommand = `${dmenuPath} ${args.join(' ')}`
     console.debug('$', execCommand)
-    const dmenu = exec(execCommand)
+
+    const dmenu = spawn(dmenuPath, args)
     dmenu.stdin.write(choices)
     dmenu.stdin.end()
 
+    let choice = ''
+    let stderr = ''
     dmenu.stdout.on('data', data => {
       choice += data
     })
     dmenu.stderr.on('data', data => {
-      error.push(data)
+      stderr += data
     })
-    dmenu.on('close', code => {
-      if (code !== 0) reject(Buffer.concat(error).toString())
-      else resolve(choice.replace(/\n$/, ''))
+    dmenu.on('close', status => {
+      if (status !== 0) reject(new Error(stderr.trim()))
+      else resolve(choice.trim())
     })
   })

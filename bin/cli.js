@@ -72,10 +72,15 @@ const oldestAllowedVaultSync = syncVaultAfter
 const saveSession = Boolean(sessionTimeout)
 const sessionFile = path.resolve(os.tmpdir(), 'bitwarden-session.txt')
 
+const dmenuArgsParsed = dmenuArgs ? dmenuArgs.split(/\s+/) : []
+const dmenuPswdArgsParsed = ['-p', 'Password:', '-nf', 'black', '-nb', 'black'].concat(
+  dmenuPswdArgs ? dmenuPswdArgs.split(/\s+/) : []
+)
+
 menu({
   bwListArgs,
-  dmenuArgs,
-  dmenuPswdArgs,
+  dmenuArgs: dmenuArgsParsed,
+  dmenuPswdArgs: dmenuPswdArgsParsed,
   saveSession,
   sessionFile,
   stdout,
@@ -99,16 +104,13 @@ menu({
       clearClipboardAfter: 0,
       sessionFile,
       stdout
+    }).catch(e => {
+      // simply log an error with cleanup
+      console.error(e)
+      if (onErrorCommand) {
+        const errorCommand = exec(onErrorCommand)
+        errorCommand.stdin.write(`'${e.toString()}'`)
+        errorCommand.stdin.end()
+      }
     })
-      .catch(e => {
-        // simply log an error with cleanup
-        console.error(e)
-      })
-      .then(() => {
-        if (onErrorCommand) {
-          const errorCommand = exec(onErrorCommand)
-          errorCommand.stdin.write(`'${e.toString()}'`)
-          errorCommand.stdin.end()
-        }
-      })
   })
