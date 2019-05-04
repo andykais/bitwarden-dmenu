@@ -5,12 +5,13 @@ const path = require('path')
 const { exec } = require('child_process')
 const minimist = require('minimist')
 const menu = require('../src')
+const obfuscateState = require('../src/util/obfuscate')
 const scheduleCleanup = require('../src/schedule-cleanup')
 
-const bwListArgsDefault = ""
+const bwListArgsDefault = ''
 const cachePasswordDefault = 15
-const dmenuArgsDefault = ""
-const dmenuPswdArgsDefault = ""
+const dmenuArgsDefault = ''
+const dmenuPswdArgsDefault = ''
 const lengthDefault = 0
 const sessionTimeoutDefault = 0
 const syncVaultAfterDefault = 0
@@ -40,7 +41,8 @@ Options:
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
   
-  --verbose           Show extra logs useful for debugging.
+  --debug             Show extra logs useful for debugging.
+  --debug-unsafe      Show debug logs WITHOUT obfuscating your sensitive info. Do not share!
 `
   )
   process.exit()
@@ -49,6 +51,7 @@ Options:
 const bwListArgs = args['bw-list-args'] || bwListArgsDefault
 const dmenuArgs = args['dmenu-args'] || dmenuArgsDefault
 const dmenuPswdArgs = args['dmenu-pswd-args'] || dmenuPswdArgsDefault
+const unsafeDebug = args['debug-unsafe']
 const length = args['l'] || lengthDefault
 const sessionTimeout = args['session-timeout'] || sessionTimeoutDefault
 const syncVaultAfter = args['sync-vault-after'] || syncVaultAfterDefault
@@ -56,21 +59,33 @@ const onErrorCommand = args['on-error']
 const stdout = args['stdout'] || stdoutDefault
 
 // prevent clipboard clearing from locking up process when printing to stdout
-const clearClipboardAfter = stdout ? 0 : args['clear-clipboard'] || cachePasswordDefault
+const clearClipboardAfter = stdout
+  ? 0
+  : args['clear-clipboard'] || cachePasswordDefault
 
-console.debug = args['verbose']
-  ? (...msgs) => console.log(...msgs, '\n')
-  : () => {}
+console.debug =
+  args['debug'] || args['debug-unsafe']
+    ? (...msgs) => console.log(...msgs, '\n')
+    : () => {}
 
-console.info = args['stdout']
-  ? () => {}
-  : console.info
+console.info = args['stdout'] ? () => {} : console.info
+
+if (args['debug-unsafe']) obfuscateState.turnOff()
 
 const oldestAllowedVaultSync = syncVaultAfter
 const saveSession = Boolean(sessionTimeout)
 const sessionFile = path.resolve(os.tmpdir(), 'bitwarden-session.txt')
 
-menu({ bwListArgs, dmenuArgs, dmenuPswdArgs, saveSession, sessionFile, stdout, oldestAllowedVaultSync })
+menu({
+  bwListArgs,
+  dmenuArgs,
+  dmenuPswdArgs,
+  saveSession,
+  sessionFile,
+  stdout,
+  oldestAllowedVaultSync,
+  unsafeDebug
+})
   .then(() =>
     scheduleCleanup({
       lockBitwardenAfter: sessionTimeout,

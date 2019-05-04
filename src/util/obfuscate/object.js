@@ -1,3 +1,5 @@
+const obfuscateState = require('./')
+
 const isArray = val => Array.isArray(val)
 
 const isObject = val => val !== null && typeof val === 'object'
@@ -21,7 +23,7 @@ const traverseObject = applyFunc => any => {
 }
 
 const replaceNonNullValues = traverseObject(v => {
-  if (v === null || v === undefined) {
+  if (!obfuscateState.isTurnedOn() || v === null || v === undefined) {
     return v
   } else {
     return '******'

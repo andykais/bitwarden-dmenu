@@ -3,6 +3,7 @@ const clipboardy = require('clipboardy')
 const dmenuRun = require('./exec-dmenu')
 const bwRun = require('./exec-bitwarden-cli')
 const obfuscate = require('./util/obfuscate/object')
+const packageJson = require('../package.json')
 
 // get a session token, either from existing sessionFile or by `bw unlock [password]`
 const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
@@ -20,7 +21,7 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
       console.debug('no session file found.')
       // prompt for password in dmenu
       const password = await dmenuRun(`-p Password: -nf black -nb black ${dmenuPswdArgs}`)('\n')
-      if (!password) throw new Error('no password given!')
+      if (!password.length) throw new Error('no password given!')
       const session = bwRun('unlock', password, '--raw')
       writeFileSync(sessionFile, session)
       console.debug('saved new session file.')
@@ -29,7 +30,7 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
   } else {
     // Why doesn't dmenuRun('...', dmenuPswdArgs)('\n') work here?
     const password = await dmenuRun(`-p Password: -nf black -nb black ${dmenuPswdArgs}`)('\n')
-    if (!password) throw new Error('no password given!')
+    if (!password.length) throw new Error('no password given!')
     const session = bwRun('unlock', password, '--raw')
     return session
   }
@@ -98,18 +99,19 @@ module.exports = async ({
   stdout,
   oldestAllowedVaultSync
 }) => {
+  console.debug(`bitwarden-dmenu v${packageJson.version}`)
   const session = await getSessionVar({ dmenuPswdArgs, saveSession, sessionFile })
 
   // bw sync if necessary
   syncIfNecessary({ session, oldestAllowedVaultSync })
-  
+
   // bw list
   const list = getAccounts({ session, bwListArgs })
 
   // choose account in dmenu
   const selectedAccount = await chooseAccount({ list, dmenuArgs })
 
-  if(stdout) {
+  if (stdout) {
     console.log(`${selectedAccount.login.username}\n${selectedAccount.login.password}`)
   } else {
     // choose field to copy in dmenu
