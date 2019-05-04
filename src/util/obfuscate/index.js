@@ -12,7 +12,6 @@ class ObfuscateSingletonState {
   }
 }
 
-console.log('creating state')
 const obfuscateState = new ObfuscateSingletonState()
 
 module.exports = obfuscateState
