@@ -59,14 +59,10 @@ const onErrorCommand = args['on-error']
 const stdout = args['stdout'] || stdoutDefault
 
 // prevent clipboard clearing from locking up process when printing to stdout
-const clearClipboardAfter = stdout
-  ? 0
-  : args['clear-clipboard'] || cachePasswordDefault
+const clearClipboardAfter = stdout ? 0 : args['clear-clipboard'] || cachePasswordDefault
 
 console.debug =
-  args['debug'] || args['debug-unsafe']
-    ? (...msgs) => console.log(...msgs, '\n')
-    : () => {}
+  args['debug'] || args['debug-unsafe'] ? (...msgs) => console.log(...msgs, '\n') : () => {}
 
 console.info = args['stdout'] ? () => {} : console.info
 
