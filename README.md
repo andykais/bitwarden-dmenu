@@ -18,21 +18,23 @@ The DMENU_PATH environment variable can be used to point to an alternative dmenu
 Options:
   --bw-list-args      Arbitrary arguments to pass to bitwarden's 'list' command
                       Defaults to nothing.
-  --clear-clipboard   Number of seconds to keep selected field in the clipboard.
-                      Defaults to 15s.
   --dmenu-args        Sets arbitrary arguments to pass to dmenu
                       Defaults to nothing.
   --dmenu-pswd-args   Sets arbitrary arguments to pass to the dmenu password prompt
                       Defaults to nothing.
+  --clear-clipboard   Number of seconds to keep selected field in the clipboard.
+                      Defaults to 15s.
   --session-timeout   Number of seconds after an unlock that the menu can be accessed
                       without providing a password again. Defaults to 0s.
-  --stdout            Prints the password and username to stdout
   --sync-vault-after  Number of seconds allowable between last bitwarden sync and
                       current time. Defaults to 0s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
 
-  --verbose           Show extra logs useful for debugging.
+  --stdout            Prints the password and username to stdout
+  
+  --debug             Show extra logs useful for debugging.
+  --debug-unsafe      Show debug logs WITHOUT obfuscating your sensitive info. Do not share!
 ```
 
 By default, this program runs at its most secure. No session is stored for any time period, the vault is updated
@@ -40,7 +42,7 @@ every time it is used, and the clipboard is cleared every 15 seconds. In reality
 little more lenient. Here is the command I use in my personal i3wm config.
 
 ```bash
-bitwarden-dmenu --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
+bitwarden-dmenu --dmenu-args '-i' --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
 ```
 
 `bitwarden-dmenu` will prompt for a login if you are logged out.
@@ -51,11 +53,10 @@ bitwarden-dmenu --clear-clipboard 30 --session-timeout 100 --sync-vault-after 36
 npm i -g bitwarden-dmenu
 ```
 
-## Depends on
+## Depends On
 
-- [dmenu](https://tools.suckless.org/dmenu/)
-- [bitwarden-cli](https://help.bitwarden.com/article/cli/)
+[dmenu](https://tools.suckless.org/dmenu/)
 
 ## Credits
 
-Inspired by the no longer maintained [keepass-dmenu](https://github.com/gustavnikolaj/keepass-dmenu)
+Inspired by the (now) deprecated [keepass-dmenu](https://github.com/gustavnikolaj/keepass-dmenu)
