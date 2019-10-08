@@ -7,7 +7,7 @@ const minimist = require('minimist')
 const menu = require('../src')
 const obfuscateState = require('../src/util/obfuscate')
 const { scheduleCleanup } = require('../src/schedule-cleanup')
-const { CancelError } = require('../src/util/error')
+const { CancelError, CommandError } = require('../src/util/error')
 
 const BW_LIST_ARGS_DEFAULT = ''
 const CACHE_PASSWORD_DEFAULT = 15
@@ -80,8 +80,8 @@ const pipeErrorToCommand = (command, e) =>
   new Promise((resolve, reject) => {
     const errorCommand = exec(onErrorCommand)
     console.log(e)
-    return
-    errorCommand.stdin.write(`'${e.toString()}'`)
+    if (e instanceof CommandError) errorCommand.stdin.write(`'${e.errorMessage}'`)
+    else errorCommand.stdin.write(`'${e.toString()}'`)
     errorCommand.stdin.end()
     errorCommand.on('close', status => {
       if (status === 0) resolve()

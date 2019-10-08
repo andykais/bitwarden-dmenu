@@ -7,6 +7,10 @@ class CommandError extends Error {
     this.stderr = stderr ? stderr.toString().trim() : ''
     this.commandProcess = commandProcess
   }
+
+  get errorMessage() {
+    return this.stdout || this.stderr || this.message
+  }
 }
 
 /**
