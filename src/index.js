@@ -1,8 +1,8 @@
 const { existsSync, writeFileSync, readFileSync } = require('fs')
 const clipboardy = require('clipboardy')
 const { CommandError } = require('./util/error')
-const dmenuRun = require('./exec-dmenu')
-const bwRun = require('./exec-bitwarden-cli')
+const dmenuRun = require('./executable-wrappers/dmenu')
+const bwRun = require('./executable-wrappers/bitwarden-cli')
 const obfuscate = require('./util/obfuscate/object')
 const packageJson = require('../package.json')
 
@@ -35,7 +35,9 @@ const login = async ({ dmenuArgs, dmenuPswdArgs }) => {
   return session
 }
 
-// get a session token, either from existing sessionFile or by `bw unlock [password]`
+/**
+ * get a session token, either from existing sessionFile or by `bw unlock [password]`
+ */
 const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
   if (saveSession) {
     console.debug(`checking for session file at ${sessionFile}`)
@@ -66,8 +68,10 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
   }
 }
 
-// sync the password accounts with the remote server
-// if --sync-vault-after < time since the last sync
+/**
+ * sync the password accounts with the remote server
+ * if --sync-vault-after < time since the last sync
+ */
 const syncIfNecessary = ({ oldestAllowedVaultSync }, session) => {
   const last = bwRun('sync', '--last', `--session=${session}`)
   const timeSinceSync = (new Date().getTime() - new Date(last).getTime()) / 1000
@@ -78,14 +82,18 @@ const syncIfNecessary = ({ oldestAllowedVaultSync }, session) => {
   }
 }
 
-// get the list all password accounts in the vault
+/**
+ * get the list all password accounts in the vault
+ */
 const getAccounts = ({ bwListArgs }, session) => {
   const listStr = bwRun('list', 'items', bwListArgs, `--session=${session}`)
   const list = JSON.parse(listStr)
   return list
 }
 
-// choose one account with dmenu
+/**
+ * choose one account with dmenu
+ */
 const chooseAccount = async ({ dmenuArgs }, list) => {
   const LOGIN_TYPE = 1
   const loginList = list.filter(a => a.type === LOGIN_TYPE)
@@ -95,13 +103,15 @@ const chooseAccount = async ({ dmenuArgs }, list) => {
   const index = accountNames.indexOf(selected)
   // accountNames indexes match loginList indexes
   const selectedAccount = loginList[index]
+  if (!selectedAccount) throw new Error('no account selected!')
   console.debug('selected account:\n', obfuscate(selectedAccount))
   return selectedAccount
 }
 
-// choose one field with dmenu
+/**
+ * choose one field with dmenu
+ */
 const chooseField = async ({ dmenuArgs }, selectedAccount) => {
-  if (!selectedAccount) throw new Error('no account selected!')
   const copyable = {
     password: selectedAccount.login.password,
     username: selectedAccount.login.username,

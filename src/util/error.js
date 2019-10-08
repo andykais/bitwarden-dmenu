@@ -1,12 +1,21 @@
 class CommandError extends Error {
-  constructor(message, { status, stderr, stdout }) {
+  constructor(message, commandProcess) {
     super(message)
+    const { status, stderr, stdout } = commandProcess
     this.status = status
-    this.stdout = stdout.toString().trim()
-    this.stderr = stderr.toString().trim()
+    this.stdout = stdout ? stdout.toString().trim() : ''
+    this.stderr = stderr ? stderr.toString().trim() : ''
+    this.commandProcess = commandProcess
   }
 }
 
+/**
+ * called when a user hits Escape during a dmenu command.
+ * This isnt really an error so we want to handle it gracefully and silently
+ */
+class CancelError extends Error {}
+
 module.exports = {
-  CommandError
+  CommandError,
+  CancelError
 }
