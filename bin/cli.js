@@ -40,7 +40,9 @@ Options:
                       current time. Defaults to ${SYNC_VAULT_AFTER_DEFAULT}s.
   --on-error          Arbitrary command to run if the program fails. The thrown error
                       is piped to the given command. Defaults to none.
-  
+
+  --stdout            Prints the password and username to stdout
+
   --debug             Show extra logs useful for debugging.
   --debug-unsafe      Show debug logs WITHOUT obfuscating your sensitive info. Do not share!
 `
