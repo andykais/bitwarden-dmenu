@@ -23,7 +23,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@bitwarden/cli": "^1.7.4",
+    "@bitwarden/cli": "^1.8.0",
     "clipboardy": "^1.2.3",
     "minimist": "^1.2.0"
   },
