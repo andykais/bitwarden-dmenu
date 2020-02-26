@@ -16,7 +16,7 @@ const isLoggedIn = async () => {
   try {
     bwRun('login', '--check')
   } catch (e) {
-    if (e instanceof CommandError && e.stdout === 'You are not logged in.') {
+    if (e instanceof CommandError && e.stderr === 'You are not logged in.') {
       return false
     } else {
       throw e
