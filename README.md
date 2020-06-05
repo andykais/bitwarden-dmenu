@@ -43,7 +43,7 @@ every time it is used, and the clipboard is cleared every 15 seconds. In reality
 little more lenient. Here is the command I use in my personal i3wm config.
 
 ```bash
-bitwarden-dmenu --dmenu-args '-i' --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
+bitwarden-dmenu --dmenu-args='-i' --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
 ```
 
 `bitwarden-dmenu` will prompt for a login if you are logged out.
