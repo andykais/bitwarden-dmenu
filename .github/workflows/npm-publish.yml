@@ -13,7 +13,15 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+          TAG: ${{ github.ref }}
+      - run: npm version --no-git-tag-version $TAG
+      - run: npm publish
+      - run: git fetch origin master
+      - run: git checkout master
+      - run: git add package.json
+      - run: git commit --messsage "release $TAG"
+      - run: git remote add deploy https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+      - run: git push deploy master
