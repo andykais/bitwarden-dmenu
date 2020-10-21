@@ -1,6 +1,6 @@
 {
   "name": "bitwarden-dmenu",
-  "version": "1.5.6",
+  "version": "1.5.9",
   "description": "dmenu for bitwarden password manager.",
   "keywords": [
     "bitwarden",
