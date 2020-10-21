@@ -23,7 +23,7 @@ jobs:
       - run: git fetch origin master
       - run: git checkout master
       - run: git add package.json
-      - run: git commit --messsage "release $TAG"
+      - run: git commit --message "release $TAG"
         env:
           TAG: ${{ github.event.release.tag_name }}
       - run: git remote add deploy https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git

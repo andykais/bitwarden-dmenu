@@ -4,6 +4,7 @@ const os = require('os')
 const path = require('path')
 const { exec } = require('child_process')
 const minimist = require('minimist')
+const packageJson = require('../package.json')
 const menu = require('../src')
 const obfuscateState = require('../src/util/obfuscate')
 const { scheduleCleanup } = require('../src/schedule-cleanup')
@@ -20,7 +21,9 @@ const STDOUT_DEFAULT = false
 const args = minimist(process.argv.slice(2))
 if (args.help) {
   console.log(
-    `Usage: bitwarden-dmenu [options]
+    `bitwarden-dmenu v${packageJson.version}
+
+Usage: bitwarden-dmenu [options]
 
 The DMENU_PATH environment variable can be used to point to an alternative dmenu implementation. Defaults to 'dmenu'.
 
