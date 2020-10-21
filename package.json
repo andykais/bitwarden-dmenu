@@ -23,14 +23,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@bitwarden/cli": "^1.8.0",
+    "@bitwarden/cli": "^1.12.1",
     "clipboardy": "^1.2.3",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.5"
   },
   "engines": {
     "node": ">=8"
   },
   "devDependencies": {
-    "prettier": "^1.18.2"
+    "prettier": "^2.1.2"
   }
 }
