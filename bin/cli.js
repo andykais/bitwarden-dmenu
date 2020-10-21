@@ -91,7 +91,7 @@ const pipeErrorToCommand = (command, e) =>
     })
   })
 
-const runBitwardenDmenu = async () => {
+async function runBitwardenDmenu() {
   try {
     await menu({
       bwListArgs,
@@ -108,7 +108,7 @@ const runBitwardenDmenu = async () => {
   } catch (e) {
     if (e instanceof CancelError) {
       console.debug('cancelled bitwarden-dmenu early.')
-      return { lockBitwardenAfter: 0, clearClipboardAfter: null }
+      return { lockBitwardenAfter: sessionTimeout, clearClipboardAfter: null }
     } else if (onErrorCommand) await pipeErrorToCommand(onErrorCommand, e)
     else {
       console.error('an error occurred:')
