@@ -15,7 +15,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm version --no-git-tag-version $TAG
         env:
-          TAG: ${{ github.ref }}
+          TAG: ${{ github.event.release.tag_name }}
       - run: npm publish
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
@@ -25,7 +25,7 @@ jobs:
       - run: git add package.json
       - run: git commit --messsage "release $TAG"
         env:
-          TAG: ${{ github.ref }}
+          TAG: ${{ github.event.release.tag_name }}
       - run: git remote add deploy https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
