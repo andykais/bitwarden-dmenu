@@ -21,6 +21,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.github_token }}
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - run: git fetch origin master
+      - run: git config --local user.email "action@github.com"
+      - run: git config --local user.name "GitHub Publish Action"
       - run: git checkout master
       - run: git add package.json
       - run: git commit --message "release $TAG"
