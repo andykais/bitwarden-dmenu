@@ -5,6 +5,8 @@ const dmenuRun = require('./executable-wrappers/dmenu')
 const bwRun = require('./executable-wrappers/bitwarden-cli')
 const obfuscate = require('./util/obfuscate/object')
 const packageJson = require('../package.json')
+const parseOtpauthURI = require('otpauth-uri-parser');
+const OTPAuth = require('otpauth')
 
 class BitwardenDmenu {
   constructor(args) {
@@ -91,6 +93,19 @@ const getAccounts = ({ bwListArgs }, session) => {
   return list
 }
 
+
+const getTOTP = (totpURL) => {
+  if(!totpURL){
+    return ""
+  }
+  const parsed = parseOtpauthURI(totpURL);
+  let totp = new OTPAuth.TOTP({
+    ...parsed.label,
+    ...parsed.query,
+  });
+  return totp.generate()
+}
+
 /**
  * choose one account with dmenu
  */
@@ -116,6 +131,7 @@ const chooseField = async ({ dmenuArgs }, selectedAccount) => {
     password: selectedAccount.login.password,
     username: selectedAccount.login.username,
     notes: selectedAccount.notes,
+    TOTP: getTOTP(selectedAccount.login.totp),
     ...(selectedAccount.fields || []).reduce(
       (acc, f) => ({
         ...acc,
