@@ -77,7 +77,7 @@ const saveSession = Boolean(sessionTimeout)
 const sessionFile = path.resolve(os.tmpdir(), 'bitwarden-session.txt')
 
 const dmenuArgsParsed = dmenuArgs ? dmenuArgs.split(/\s+/) : []
-const dmenuPswdArgsParsed = ['-p', 'Password:', '-P'].concat(
+const dmenuPswdArgsParsed = ['-p', 'Password:', '-nf', 'black', '-nb', 'black'].concat(
   dmenuPswdArgs ? dmenuPswdArgs.split(/\s+/) : []
 )
 

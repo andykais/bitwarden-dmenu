@@ -46,6 +46,11 @@ little more lenient. Here is the command I use in my personal i3wm config.
 bitwarden-dmenu --dmenu-args='-i' --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
 ```
 
+If you have the ![password patch](https://tools.suckless.org/dmenu/patches/password/) for dmenu, you can run the following command to see your password as you enter it:
+```bash
+bitwarden-dmenu --dmenu-args='-i' --dmenu-pswd-args='-nf white -P' --clear-clipboard 30 --session-timeout 100 --sync-vault-after 3600 --on-error 'xargs notify-send --urgency=low'
+```
+
 `bitwarden-dmenu` will prompt for a login if you are logged out.
 
 ## Installation

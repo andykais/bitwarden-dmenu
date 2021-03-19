@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@bitwarden/cli": "^1.12.1",
-    "bitwarden-dmenu": "^1.5.9",
     "clipboardy": "^1.2.3",
     "minimist": "^1.2.5",
     "otpauth": "^6.2.3",
