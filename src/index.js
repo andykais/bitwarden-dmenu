@@ -15,17 +15,23 @@ class BitwardenDmenu {
 }
 
 const isLoggedIn = async () => {
-  try {
-    bwRun('login', '--check')
-  } catch (e) {
-    if (e instanceof CommandError && e.stderr === 'You are not logged in.') {
-      return false
-    } else {
-      throw e
+
+  if(!existsSync('/tmp/bwdmenu_loggedin')){
+    try {
+      bwRun('login', '--check')
+      writeFileSync('/tmp/bwdmenu_loggedin', "",{encoding:'utf8', flag:'w'}); 
+    } catch (e) {
+      if (e instanceof CommandError && e.stderr === 'You are not logged in.') {
+        return false
+      } else {
+        throw e
+      }
     }
+    return true;
   }
-  return true
+  return true;
 }
+
 const login = async ({ dmenuArgs, dmenuPswdArgs }) => {
   const email = await dmenuRun(
     '-p',
@@ -34,6 +40,7 @@ const login = async ({ dmenuArgs, dmenuPswdArgs }) => {
   )('\n')
   const password = await dmenuRun(...dmenuPswdArgs)('\n')
   const session = bwRun('login', email, password, '--raw')
+  writeFileSync('/tmp/bwdmenu_loggedin', "",{encoding:'utf8', flag:'w'});
   return session
 }
 
@@ -75,12 +82,21 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
  * if --sync-vault-after < time since the last sync
  */
 const syncIfNecessary = ({ oldestAllowedVaultSync }, session) => {
-  const last = bwRun('sync', '--last', `--session=${session}`)
+  // const last = bwRun('sync', '--last', `--session=${session}`)
+  if(!existsSync('/tmp/bwdmenu_lastsync')){
+    console.debug('syncing vault...')
+    bwRun('sync', `--session=${session}`)
+    writeFileSync('/tmp/bwdmenu_lastsync', new Date().toISOString(),{encoding:'utf8', flag:'w'}); 
+    return;
+  }
+
+  const last = readFileSync('/tmp/bwdmenu_lastsync', {encoding:'utf8', flag:'r'}); 
   const timeSinceSync = (new Date().getTime() - new Date(last).getTime()) / 1000
   if (timeSinceSync > oldestAllowedVaultSync) {
     console.debug('syncing vault...')
     bwRun('sync', `--session=${session}`)
     console.debug(`sync complete, last sync was ${last}`)
+    writeFileSync('/tmp/bwdmenu_lastsync',new Date().toISOString(),{encoding:'utf8', flag:'w'}); 
   }
 }
 
@@ -88,9 +104,15 @@ const syncIfNecessary = ({ oldestAllowedVaultSync }, session) => {
  * get the list all password accounts in the vault
  */
 const getAccounts = ({ bwListArgs }, session) => {
-  const listStr = bwRun('list', 'items', bwListArgs, `--session=${session}`)
+  var listStr;
+  if(!existsSync('/tmp/bwdmenu_accounts')){
+    listStr = bwRun('list', 'items', bwListArgs, `--session=${session}`)
+    writeFileSync('/tmp/bwdmenu_accounts', listStr,{encoding:'utf8', flag:'w'}); 
+  }else{
+    listStr = readFileSync('/tmp/bwdmenu_accounts', {encoding:'utf8', flag:'r'}); 
+  }
   const list = JSON.parse(listStr)
-  return list
+  return list;
 }
 
 
