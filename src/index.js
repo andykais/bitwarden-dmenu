@@ -87,7 +87,9 @@ const syncIfNecessary = (args, session) => {
     console.debug('syncing vault...')
     bwRun('sync', `--session=${session}`)
     writeFileSync('/tmp/bwdmenu_lastsync', new Date().toISOString(),{encoding:'utf8', flag:'w'}); 
-    unlinkSync("/tmp/bwdmenu_accounts");
+    if(existsSync('/tmp/bwdmenu_accounts')){
+      unlinkSync("/tmp/bwdmenu_accounts");
+    }
     getAccounts(args, session);
     return;
   }
@@ -99,7 +101,9 @@ const syncIfNecessary = (args, session) => {
     bwRun('sync', `--session=${session}`)
     console.debug(`sync complete, last sync was ${last}`)
     writeFileSync('/tmp/bwdmenu_lastsync',new Date().toISOString(),{encoding:'utf8', flag:'w'}); 
-    unlinkSync("/tmp/bwdmenu_accounts");
+    if(existsSync('/tmp/bwdmenu_accounts')){
+      unlinkSync("/tmp/bwdmenu_accounts");
+    }
     getAccounts(args, session);
   }
 }
