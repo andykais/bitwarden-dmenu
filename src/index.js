@@ -1,4 +1,4 @@
-const { existsSync, writeFileSync, readFileSync } = require('fs')
+const { existsSync, writeFileSync, readFileSync, unlinkSync } = require('fs')
 const clipboardy = require('clipboardy')
 const { CommandError } = require('./util/error')
 const dmenuRun = require('./executable-wrappers/dmenu')
@@ -81,22 +81,26 @@ const getSessionVar = async ({ dmenuPswdArgs, saveSession, sessionFile }) => {
  * sync the password accounts with the remote server
  * if --sync-vault-after < time since the last sync
  */
-const syncIfNecessary = ({ oldestAllowedVaultSync }, session) => {
+const syncIfNecessary = (args, session) => {
   // const last = bwRun('sync', '--last', `--session=${session}`)
   if(!existsSync('/tmp/bwdmenu_lastsync')){
     console.debug('syncing vault...')
     bwRun('sync', `--session=${session}`)
     writeFileSync('/tmp/bwdmenu_lastsync', new Date().toISOString(),{encoding:'utf8', flag:'w'}); 
+    unlinkSync("/tmp/bwdmenu_accounts");
+    getAccounts(args, session);
     return;
   }
 
   const last = readFileSync('/tmp/bwdmenu_lastsync', {encoding:'utf8', flag:'r'}); 
   const timeSinceSync = (new Date().getTime() - new Date(last).getTime()) / 1000
-  if (timeSinceSync > oldestAllowedVaultSync) {
+  if (timeSinceSync > args.oldestAllowedVaultSync) {
     console.debug('syncing vault...')
     bwRun('sync', `--session=${session}`)
     console.debug(`sync complete, last sync was ${last}`)
     writeFileSync('/tmp/bwdmenu_lastsync',new Date().toISOString(),{encoding:'utf8', flag:'w'}); 
+    unlinkSync("/tmp/bwdmenu_accounts");
+    getAccounts(args, session);
   }
 }
 
@@ -136,7 +140,9 @@ const chooseAccount = async ({ dmenuArgs }, list) => {
   const loginList = list.filter(a => a.type === LOGIN_TYPE)
 
   const accountNames = loginList.map(a => `${a.name}: ${a.login.username}`)
-  const selected = await dmenuRun(...dmenuArgs)(accountNames.join('\n'))
+  const selected = await dmenuRun(...dmenuArgs)(accountNames.join('\n') + "\n!SYNC")
+  if(selected == "!SYNC")
+    return selected
   const index = accountNames.indexOf(selected)
   // accountNames indexes match loginList indexes
   const selectedAccount = loginList[index]
@@ -181,6 +187,12 @@ module.exports = async args => {
 
   // choose account in dmenu
   const selectedAccount = await chooseAccount(args, list)
+
+  if(selectedAccount == "!SYNC"){
+    unlinkSync("/tmp/bwdmenu_lastsync");
+    syncIfNecessary(args, session);
+    return;
+  }
 
   if (args.stdout) {
     console.log(`${selectedAccount.login.username}\n${selectedAccount.login.password}`)
