@@ -1,6 +1,6 @@
 {
   "name": "bitwarden-dmenu",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "description": "dmenu for bitwarden password manager.",
   "keywords": [
     "bitwarden",
@@ -23,7 +23,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@bitwarden/cli": "^1.12.1",
+    "@bitwarden/cli": "1.20.0",
     "clipboardy": "^1.2.3",
     "minimist": "^1.2.5"
   },
