@@ -106,7 +106,6 @@ async function runBitwardenDmenu() {
       oldestAllowedVaultSync,
       unsafeDebug
     })
-
     return { lockBitwardenAfter: sessionTimeout, clearClipboardAfter }
   } catch (e) {
     if (e instanceof CancelError) {
